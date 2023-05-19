@@ -1,0 +1,75 @@
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  azureServiceConnection: ' Visual Studio Enterprise Subscription(f5261015-0552-42be-8274-eb1eecece5d6)'
+  dockerRegistryServiceConnection: '4165d133-159e-4a76-8fae-7c62201eaee6'
+  
+  imageRepository: 'sentinmentanalysis'
+  containerRegistry: 'sentimentanalysis001.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  tag: '$(Build.BuildId)'
+  
+  webAppsName: 'sentimentAnalysis005'
+  resourceGroupName: 'sentimentanalysis'
+  templateFile: 'main.bicep'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: Create 
+  displayName: Create Azure Webs Apps Infrastructure
+  jobs:
+  - job: Create
+    displayName: Create Azure Webs Apps Infrastructure
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: AzureCLI@2
+      displayName: 
+      inputs:
+        azureSubscription: $(azureServiceConnection)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az --version
+          az deployment group create --resource-group $(resourceGroupName) --template-file $(templateFile)
+
+
+- stage: Build 
+  displayName: Build and push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+    
+- stage: Deploy
+  displayName: Deploy to Azure Web Apps for Containers
+  jobs:
+  - job: Deploy
+    displayName: Deploy
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: AzureWebAppContainer@1
+      inputs:
+        azureSubscription: $(azureServiceConnection)
+        appName: $(webAppsName)
+        containers: "$(containerRegistry)/$(imageRepository):$(tag)"
+        
+
