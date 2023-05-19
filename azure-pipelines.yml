@@ -5,7 +5,7 @@ resources:
 - repo: self
 
 variables:
-  azureServiceConnection: ' Visual Studio Enterprise Subscription(f5261015-0552-42be-8274-eb1eecece5d6)'
+  azureServiceConnection: 'a954e114-13fa-44cf-9dc9-203537dfe79f'
   dockerRegistryServiceConnection: '4165d133-159e-4a76-8fae-7c62201eaee6'
   
   imageRepository: 'sentinmentanalysis'
