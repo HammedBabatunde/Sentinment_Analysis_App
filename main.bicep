@@ -1,20 +1,20 @@
 @description('Name of the sentinment analaysis Container App')
-param ContainerAppName string 
+param ContainerAppName string = 'sentimentAnalysis005'
 
 @description('Name of the sentinment analaysis Container App Plan')
-param containerAppPlanName string 
+param containerAppPlanName string = 'sentimentAnalysisPlan005'
 
 @description('Location of the resource group')
 param location string = resourceGroup().location
 
 @description('Docker Registry Url')
-param dockerRegistryUrl string 
+param dockerRegistryUrl string = 'sentimentanalysis001.azurecr.io'
 
 @description('Docker Registry Username')
-param dockerRegistryUsername string 
+param dockerRegistryUsername string = 'sentimentanalysis001'
 
 @description('Docker Registry Password')
-param dockerRegistryPassword string
+param dockerRegistryPassword string = 'YbqRLX6Lnis7KSEI6dRbuiSu2kDS3F7o3hdMCwlISd+ACRBIxUPu'
 
 resource servicePlan 'Microsoft.Web/serverfarms@2016-09-01' = {
   kind: 'linux'
