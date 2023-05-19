@@ -1,0 +1,75 @@
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  azureServiceConnection: 'Visual Studio Enterprise Subscription(f5261015-0552-42be-8274-eb1eecece5d6)'
+
+  # Container registry service connection established during pipeline creation 
+  dockerRegistryServiceConnection: 'fc9d3c75-5c9c-4dc0-888c-d57a0221bfdb'
+  imageRepository: 'sentinmentanalysis001'
+  containerRegistry: 'sentinmentanalysis001.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  tag: '$(Build.BuildId)'
+  
+  resourceGroupName: 'demo-day'
+  templateFile: 'main.bicep'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
+stages:
+- stage: Create 
+  displayName: Create Azure Webs Apps Infrastructure
+  jobs:
+  - job: Create
+    displayName: Create Azure Webs Apps Infrastructure
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: AzureCLI@2
+      displayName: 
+      inputs:
+        azureSubscription: $(azureServiceConnection)
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az --version
+          az deployment group create --resource-group $(resourceGroupName) --template-file $(templateFile)
+
+
+- stage: Build 
+  displayName: Build and push stage
+  jobs:
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+    
+- stage: Deploy
+  displayName: Deploy to Azure Web Apps for Containers
+  jobs:
+  - job: Deploy
+    displayName: Deploy
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: AzureWebAppContainer@1
+      inputs:
+        azureSubscription: $(azureServiceConnection)
+        appName: 'sentimentanalysis001'
+        containers: "$(containerRegistry)/$(imageRepository):$(tag)"
+        
+
