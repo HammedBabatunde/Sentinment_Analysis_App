@@ -1,4 +1,4 @@
-# sentiments-analysed-by-Salim
+# sentiments-analysed-by-Salim and Babatunde
 
 
 ## Description
